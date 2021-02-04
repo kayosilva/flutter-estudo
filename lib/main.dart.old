@@ -1,0 +1,158 @@
+import 'package:flutter/material.dart';
+
+void main() => runApp(BytebankApp());
+
+class BytebankApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Scaffold(
+        body: ListaTransferencias(),
+      ),
+    );
+  }
+}
+
+class Transferencia {
+  final double valor;
+  final int numeroConta;
+
+  Transferencia(this.valor, this.numeroConta);
+
+  @override
+  String toString() {
+    return 'Transferencia{valor: $valor, numeroConta: $numeroConta}';
+  }
+}
+
+class ListaTransferencias extends StatefulWidget {
+  final List<Transferencia> _transferencias = List();
+
+  @override
+  State<StatefulWidget> createState() {
+    return ListaTransferenciasState();
+  }
+}
+
+class ListaTransferenciasState extends State<ListaTransferencias> {
+  @override
+  Widget build(BuildContext context) {
+    debugPrint(widget._transferencias.length.toString());
+    //widget._transferencias.add(Transferencia(100, 1000));
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Transferencias"),
+      ),
+      body: ListView.builder(
+        itemCount: widget._transferencias.length,
+        itemBuilder: (context, indice) {
+          final transferencia = widget._transferencias[indice];
+          debugPrint(widget._transferencias.length.toString());
+          debugPrint(widget._transferencias[indice].toString());
+          return ItemTransferencia(transferencia);
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.add),
+        onPressed: () async {
+          final Transferencia transferenciaRecebida = await Navigator.push(
+              context, MaterialPageRoute(builder: (context) {
+            return FormularioTransferencia();
+          }));
+
+          widget._transferencias.add(transferenciaRecebida);
+          debugPrint('chegou no then do future');
+          debugPrint('$transferenciaRecebida');
+          debugPrint(widget._transferencias.length.toString());
+        },
+      ),
+    );
+  }
+}
+
+class ItemTransferencia extends StatelessWidget {
+  final Transferencia _trasnferencia;
+
+  ItemTransferencia(this._trasnferencia);
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+        child: ListTile(
+      leading: Icon(Icons.monetization_on),
+      title: Text(_trasnferencia.valor.toString()),
+      subtitle: Text(_trasnferencia.numeroConta.toString()),
+    ));
+  }
+}
+
+class FormularioTransferencia extends StatelessWidget {
+  final TextEditingController _controladorCampoNumeroConta =
+      TextEditingController();
+  final TextEditingController _controladorCampoValor = TextEditingController();
+
+  void _onSaveTransferencia(BuildContext context) {
+    int numeroConta = int.tryParse(_controladorCampoNumeroConta.text);
+    double valor = double.tryParse(_controladorCampoValor.text);
+
+    if (numeroConta != null && valor != null) {
+      Transferencia transferencia = Transferencia(valor, numeroConta);
+      Navigator.pop(context, transferencia);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Criando Transferencia')),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            InputFormTransferencia(
+              controller: _controladorCampoNumeroConta,
+              labelText: 'Número da conta',
+              hintText: '0000',
+            ),
+            InputFormTransferencia(
+              controller: _controladorCampoValor,
+              labelText: 'Valor',
+              hintText: '0.00',
+              icon: Icons.monetization_on,
+            ),
+            RaisedButton(
+              child: Text('Confirmar'),
+              onPressed: () => _onSaveTransferencia(context),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class InputFormTransferencia extends StatelessWidget {
+  final TextEditingController controller;
+  final String labelText;
+  final String hintText;
+  final IconData icon;
+
+  InputFormTransferencia(
+      {this.controller, this.labelText, this.hintText, this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: TextField(
+        controller: controller,
+        style: TextStyle(fontSize: 24),
+        keyboardType: TextInputType.number,
+        decoration: InputDecoration(
+          labelText: labelText,
+          hintText: hintText,
+          icon: icon != null ? Icon(icon) : null,
+        ),
+      ),
+    );
+  }
+}
